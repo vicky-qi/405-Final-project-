@@ -41,6 +41,11 @@ else
     exit 1
 fi
 
-# --- 6. 运行 Step 2: Snowflake (完美适配相对路径) ---
+# --- 6. 运行 Step 2: Snowflake ---
 echo "Step 2: Loading to Snowflake..."
+
+# 1. 先把货从 VM 搬到云端仓库 (PUT)
+snowsql -a $SNOWSQL_ACCOUNT -u $SNOWSQL_USER -q "PUT file://$PROJECT_ROOT/output/*.parquet @GCP_PARQUET_STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
+
+# 2. 让云端搬运工把货搬进表里 (运行你的 SQL)
 snowsql -a $SNOWSQL_ACCOUNT -u $SNOWSQL_USER -f "$PROJECT_ROOT/snowflake/405_Final_Project.sql"
