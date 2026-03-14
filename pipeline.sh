@@ -22,8 +22,6 @@ if [ -z "$SNOWSQL_PWD" ]; then
     export SNOWSQL_USER=$SNOW_USER
     export SNOWSQL_PWD=$SNOW_PASS
 fi
-
-# --- 4. 运行 Step 1: Spark (完美适配相对路径) ---
 # --- 4. 运行 Step 1: Spark ---
 echo "Step 1: Running PySpark Data Cleaning..."
 spark-submit \
@@ -31,9 +29,9 @@ spark-submit \
   --driver-memory 10g \
   --executor-memory 10g \
   spark/spark-job.py \
-  "./data/311_Service_Requests_from_2020_to_Present_20260218.csv" \
-  "./data/pluto_25v4.csv" \
-  "./output/"
+  "data/311_Service_Requests_from_2020_to_Present_20260218.csv" \
+  "data/pluto_25v4.csv" \
+  "output/"
 
 # --- 5. 检查原子性 ---
 if [ $? -eq 0 ]; then
