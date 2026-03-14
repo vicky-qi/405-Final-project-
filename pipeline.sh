@@ -44,12 +44,15 @@ fi
 # --- 6. 运行 Step 2: Snowflake ---
 echo "Step 2: Loading to Snowflake..."
 
-# 🚀 重点在这里：我们直接使用全称 NYC_311_DB.URBAN_ANALYTICS.GCP_PARQUET_STAGE
-# 这样就不会报错 "does not have a current database" 了
-snowsql -a $SNOWSQL_ACCOUNT -u $SNOWSQL_USER \
-  -q "USE DATABASE NYC_311_DB; USE SCHEMA URBAN_ANALYTICS; \
-      PUT file://$PROJECT_ROOT/output/*.parquet \
-      @GCP_PARQUET_STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
+# 先把 PUT 命令写进临时文件
+TMPFILE=$(mktemp /tmp/put_cmd_XXXX.sql)
+echo "USE DATABASE NYC_311_DB;"                                                          > $TMPFILE
+echo "USE SCHEMA PUBLIC;"                                                               >> $TMPFILE
+echo "PUT file://$PROJECT_ROOT/output/*.parquet @GCP_PARQUET_STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;" >> $TMPFILE
 
-# 接着运行 SQL 脚本
+# 用 -f 执行（PUT 只能用 -f，不能用 -q）
+snowsql -a $SNOWSQL_ACCOUNT -u $SNOWSQL_USER -f "$TMPFILE"
+rm -f $TMPFILE
+
+# 再跑建表 + COPY INTO
 snowsql -a $SNOWSQL_ACCOUNT -u $SNOWSQL_USER -f "$PROJECT_ROOT/snowflake/405_Final_Project.sql"
