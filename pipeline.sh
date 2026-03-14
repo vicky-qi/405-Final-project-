@@ -44,8 +44,10 @@ fi
 # --- 6. 运行 Step 2: Snowflake ---
 echo "Step 2: Loading to Snowflake..."
 
-# 1. 先把货从 VM 搬到云端仓库 (PUT)
-snowsql -a $SNOWSQL_ACCOUNT -u $SNOWSQL_USER -q "PUT file://$PROJECT_ROOT/output/*.parquet @GCP_PARQUET_STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
+# 我们显式地告诉 Snowsql 使用 URBAN_ANALYTICS 这个 Schema
+snowsql -a $SNOWSQL_ACCOUNT -u $SNOWSQL_USER -q "USE DATABASE NYC_311_DB; USE SCHEMA URBAN_ANALYTICS; PUT file://$PROJECT_ROOT/output/*.parquet @GCP_PARQUET_STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
 
-# 2. 让云端搬运工把货搬进表里 (运行你的 SQL)
+# 运行 SQL 脚本
 snowsql -a $SNOWSQL_ACCOUNT -u $SNOWSQL_USER -f "$PROJECT_ROOT/snowflake/405_Final_Project.sql"
+
+echo "🎉 PIPELINE FINISHED! Data is loaded into NYC_311_DB.URBAN_ANALYTICS"
